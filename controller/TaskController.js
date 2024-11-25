@@ -6,10 +6,9 @@ class TaskController {
             const {
                 id,
                 name,
-                description,
             } = req.body;
             const user = req.user;
-            const task = await TaskService.addTask(id, name, description, user.id);
+            const task = await TaskService.addTask(id, name, user.id);
             return res.json({message: 'success add'});
         } catch (e) {
             next(e);
@@ -18,9 +17,9 @@ class TaskController {
 
     async deleteTask(req, res, next) {
         try {
-            const { _id } = req.body;
+            const { _id, idTasksColumn } = req.body;
             const user = req.user;
-            const delTask = await TaskService.deleteTask(_id, user.id);
+            const delTask = await TaskService.deleteTask(_id, idTasksColumn, user.id);
             return res.json({message: 'success delete'});
         } catch (e) {
             next(e);

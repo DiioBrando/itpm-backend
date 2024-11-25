@@ -1,10 +1,10 @@
 import ApiError from "../exceptions/ApiError.js";
 import User from "../model/users-model/User.js";
-import UserDTO from "../dtos/UserDTO.js";
+import Task from "../model/kanban-model/Task.js";
 import TasksColumn from "../model/kanban-model/TasksColumn.js";
 
 class TaskService {
-    async addTask(id, name, description, idUser) {
+    async addTask(idTasksColumn, name, idUser) {
         if (name.length === 0) {
             throw ApiError.BadRequest('Please set name project!');
         }
@@ -12,39 +12,35 @@ class TaskService {
         if (!user) {
             throw ApiError.BadRequest('not found user');
         }
-        const userDto = new UserDTO(user);
-        const defaultKanban = [
-            {
-                nameTasksColumn: 'in work',
-            },
-            {
-                nameTasksColumn: 'in process',
-            },
-            {
-                nameTasksColumn: 'completed',
-            },
-        ];
-        const createDefaultTasksColumn = await TasksColumn.insertMany(defaultKanban);
-        const idTasksColumn = await createDefaultTasksColumn.map(item => item._id);
 
-        const create = await Project.create({nameProject: name, userId: userDto.id, kanbanTasks: idTasksColumn,});
+        const create = await Task.create({ nameTask: name, idTasksColumn: idTasksColumn});
+        await TasksColumn.findByIdAndUpdate(
+            idTasksColumn,
+            { $push: { tasks: create._id } },
+            { new: true }
+        );
         return create;
     }
 
-    async deleteTask(_id, idUser) {
+    async deleteTask(_id, idTasksColumn, idUser) {
         const findUser = await User.findOne({_id: idUser});
         if (!findUser) {
             throw ApiError.BadRequest();
         }
 
-        const findProject = await Project.findOne({_id: _id});
+        const findTask = await Task.findOne({_id: _id});
 
-        if (!findProject) {
+        if (!findTask) {
             throw ApiError.BadRequest();
         }
 
-        const delProject = await Project.deleteOne({_id: findProject._id});
-        return delProject;
+        const delTask = await Task.deleteOne({_id: findTask._id});
+        await TasksColumn.findOneAndDelete(
+            idTasksColumn,
+            { $pull: { tasks: delTask._id } },
+            { new: true }
+        );
+        return delTask;
     }
 
     async updateTask(_id, description, nameProject, idUser) {
@@ -57,16 +53,15 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const findProject = await Project.findOne({_id: _id});
+        const findTask = await Task.findOne({_id: _id});
 
-        if (!findProject) {
+        if (!findTask) {
             throw ApiError.BadRequest();
         }
 
-        const update = Project.findOneAndUpdate({_id: findProject.id}, {nameProject: nameProject}, {new: true});
+        const update = Task.findOneAndUpdate({_id: findTask._id}, { nameProject: nameProject, description: description, }, {new: true});
         return update;
     }
-
     async getOne(_id, idUser) {
 
         const findUser = await User.findOne({_id: idUser});
@@ -74,24 +69,22 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const findProject = await Project.findOne({_id: _id});
+        const findTask = await Task.findOne({_id: _id});
 
-        if (!findProject) {
+        if (!findTask) {
             throw ApiError.BadRequest();
         }
 
-        return findProject;
+        return findTask;
     }
-
     async getAll() {
-        const findAllProjects = await Project.find({_id});
+        const findAllProjects = await Task.find();
         if (!findAllProjects) {
             throw ApiError.BadRequest();
         }
 
         return findAllProjects;
     }
-
     async getMany(idArray, idUser) {
         if (idArray.length === 0) {
             throw ApiError.BadRequest();
@@ -102,15 +95,14 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const findArray = await Project.find({_id: {$in: idArray}});
+        const findArray = await Task.find({_id: {$in: idArray}});
         if (!findArray) {
             throw ApiError.BadRequest();
         }
 
         return findArray;
     }
-
-    async deleteMany(idArray, idUser) {
+    async deleteMany(idArray, idTasksColumn, idUser) {
         if (idArray.length === 0) {
             throw ApiError.BadRequest();
         }
@@ -120,11 +112,15 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const deleteArray = await Project.deleteMany({_id: {$in: idArray}});
+        const deleteArray = await Task.deleteMany({_id: {$in: idArray}});
         if (!deleteArray) {
             throw ApiError.BadRequest();
         }
-
+        await TasksColumn.findOneAndUpdate(
+            { _id: idTasksColumn },
+            { $pull: { tasks: { $in: idArray } } },
+            { new: true }
+        );
         return deleteArray;
     }
 }
