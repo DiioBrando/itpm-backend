@@ -3,17 +3,20 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import routerUser from "./router/routerUser.js";
+import routerComments from "./router/routerComments.js";
 
 const app = express();
 dotenv.config();
 
 
 app.use(express.json());
-app.use(cookieParser('cookieName', 'cookieValue', {
+app.use(cookieParser('cookieName', {
     sameSite: 'lax',
 }));
 app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
-
+app.use('/api', routerUser);
+app.use('/api', routerComments);
 
 
 async function startApp(){
