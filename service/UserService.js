@@ -8,26 +8,27 @@ import ApiError from "../exceptions/ApiError.js";
 
 class UserService {
     async registration(login, email, password) {
-            if(await User.findOne({ login })) {
-                throw ApiError.BadRequest('there is already a user with this name');
-            }
-            if(await User.findOne({ email })) {
-                throw ApiError.BadRequest('there is already a user with this email');
-            }
-            const hashPass = bcrypt.hashSync(password, 7);
-            const userRole = await Role.findOne({ value: "user" } );
-            const activationLink = uuid.v4();
+        if(await User.findOne({ login })) {
+            throw ApiError.BadRequest('there is already a user with this name');
+        }
+        if(await User.findOne({ email })) {
+            throw ApiError.BadRequest('there is already a user with this email');
+        }
+        const hashPass = bcrypt.hashSync(password, 7);
+        const userRole = await Role.findOne({ value: "user" } );
+        const activationLink = uuid.v4();
 
-            const user = await User.create({ login, email, password: hashPass, roles: [userRole.value] , activationLink });
+        const user = await User.create({ login, email, password: hashPass, roles: [userRole.value] , activationLink });
 
 
-            const userDto = new UserDTO(user);
-            const tokens = TokenService.generationToken({ ...userDto });
-            await TokenService.saveToken(userDto.id, tokens.refreshToken);
-            return {
-                ...tokens,
-                user: userDto,
-            }
+        const userDto = new UserDTO(user);
+        const tokens = TokenService.generationToken({ ...userDto });
+        await TokenService.saveToken(userDto.id, tokens.refreshToken);
+        return {
+            ...tokens,
+            user: userDto,
+        }
+
     }
 
     async login(email, password) {

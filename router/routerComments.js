@@ -8,6 +8,6 @@ const routerComments = new Router();
 routerComments.post('/add-comment', authMiddleware, CommentController.commentAdd);
 routerComments.delete('/delete-comment/:id', authMiddleware, CommentController.deleteComment);
 routerComments.patch('/update-comment/:id', authMiddleware, CommentController.updateComment);
-routerComments.get('/getAll-comments', CommentController.getAll);
+routerComments.get('/get-all-comments', CommentController.getAll);
 
 export default routerComments

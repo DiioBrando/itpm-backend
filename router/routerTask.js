@@ -7,6 +7,6 @@ const routerTask = new Router();
 routerTask.post('/add-task', authMiddleware, );
 routerTask.delete('/delete-task/:id', authMiddleware, );
 routerTask.patch('/update-task/:id', authMiddleware, );
-routerTask.get('/getAll-tasks', );
+routerTask.get('/get-all-tasks', );
 
 export default routerTask;

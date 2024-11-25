@@ -2,13 +2,14 @@ import ApiError from "../exceptions/ApiError.js";
 import User from "../model/users-model/User.js";
 import UserDTO from "../dtos/UserDTO.js";
 import Project from "../model/project-model/Project.js";
+import TasksColumn from "../model/kanban-model/TasksColumn.js";
 
 class ProjectService {
-   async createProject(name, _id) {
+   async createProject(name, idUser) {
         if(name.length === 0)  {
             throw ApiError.BadRequest('Please set name project!');
         }
-        const user = await User.findOne({ _id: _id });
+        const user = await User.findOne({ _id: idUser });
         if(!user) {
             throw ApiError.BadRequest('not found user');
         }
@@ -16,26 +17,97 @@ class ProjectService {
         const defaultKanban = [
             {
                 nameTasksColumn: 'in work',
-                tasks: [],
             },
             {
                 nameTasksColumn: 'in process',
-                tasks: [],
             },
             {
                 nameTasksColumn: 'completed',
-                tasks: [],
             },
         ];
-        const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: defaultKanban, });
+        const createDefaultTasksColumn = await TasksColumn.insertMany(defaultKanban);
+        const idTasksColumn = await createDefaultTasksColumn.map(item => item._id);
+
+        const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: idTasksColumn, });
         return create;
     }
     async deleteProject(_id, idUser) {
+       const findUser = await User.findOne({ _id: idUser });
+       if(!findUser) {
+           throw ApiError.BadRequest();
+       }
 
-    }
-    async updateProject(_id, nameProject) {
+       const findProject = await Project.findOne({ _id: _id });
 
+       if(!findProject) {
+           throw ApiError.BadRequest();
+       }
+
+       const delProject = await Project.deleteOne({ _id: findProject._id });
+       return delProject;
     }
+    async updateProject(_id, idUser, nameProject) {
+       if(nameProject.length === 0) {
+           throw ApiError.BadRequest();
+       }
+
+        const findUser = await User.findOne({ _id: idUser });
+        if(!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findProject = await Project.findOne({ _id: _id });
+
+        if(!findProject) {
+            throw ApiError.BadRequest();
+        }
+
+        const update = Project.findOneAndUpdate({ _id: findProject.id }, { nameProject: nameProject }, { new: true } );
+        return update;
+    }
+
+    async getOne(_id, idUser) {
+
+        const findUser = await User.findOne({ _id: idUser });
+        if(!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findProject = await Project.findOne({ _id: _id });
+
+        if(!findProject) {
+            throw ApiError.BadRequest();
+        }
+
+        return findProject;
+    }
+
+   async getAll() {
+       const findAllProjects = await Project.find({ _id });
+       if(!findAllProjects) {
+           throw ApiError.BadRequest();
+       }
+
+       return findAllProjects;
+   }
+   async getMany(idArray, idUser) {
+       if(idArray.length === 0) {
+           throw ApiError.BadRequest();
+       }
+
+       const findUser = await User.findOne({ _id: idUser });
+       if(!findUser) {
+           throw ApiError.BadRequest();
+       }
+
+       const findArray = await Project.find({ _id: { $in: idArray } });
+       console.log(findArray);
+       if(!findArray) {
+           throw ApiError.BadRequest();
+       }
+
+       return findArray;
+   }
 }
 
 
