@@ -30,7 +30,7 @@ class ProjectService {
         const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: defaultKanban, });
         return create;
     }
-    async deleteProject(_id) {
+    async deleteProject(_id, idUser) {
 
     }
     async updateProject(_id, nameProject) {
