@@ -7,8 +7,9 @@ const routerProject = new Router();
 routerProject.post('/create-project', authMiddleware, ProjectController.createProject);
 routerProject.delete('/delete-project/:id', authMiddleware, ProjectController.deleteProject);
 routerProject.patch('/update-project/:id', authMiddleware, ProjectController.updateProject);
-routerProject.get('/get-one/:id', authMiddleware, ProjectController.getOne);
-routerProject.get('/get-all', authMiddleware, ProjectController.getAll);
+routerProject.get('/get-one-project/:id', authMiddleware, ProjectController.getOne);
+routerProject.get('/get-all-projects', authMiddleware, ProjectController.getAll);
 routerProject.get('/get-many-projects', authMiddleware, ProjectController.getMany);
+routerProject.delete('/delete-many-projects', authMiddleware, ProjectController.deleteMany);
 
 export default routerProject;

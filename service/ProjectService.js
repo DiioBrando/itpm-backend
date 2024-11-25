@@ -65,7 +65,6 @@ class ProjectService {
         const update = Project.findOneAndUpdate({ _id: findProject.id }, { nameProject: nameProject }, { new: true } );
         return update;
     }
-
     async getOne(_id, idUser) {
 
         const findUser = await User.findOne({ _id: idUser });
@@ -81,9 +80,8 @@ class ProjectService {
 
         return findProject;
     }
-
    async getAll() {
-       const findAllProjects = await Project.find({ _id });
+       const findAllProjects = await Project.find();
        if(!findAllProjects) {
            throw ApiError.BadRequest();
        }
@@ -101,12 +99,29 @@ class ProjectService {
        }
 
        const findArray = await Project.find({ _id: { $in: idArray } });
-       console.log(findArray);
        if(!findArray) {
            throw ApiError.BadRequest();
        }
 
        return findArray;
+   }
+
+   async deleteMany(idArray, idUser) {
+       if(idArray.length === 0) {
+           throw ApiError.BadRequest();
+       }
+
+       const findUser = await User.findOne({ _id: idUser });
+       if(!findUser) {
+           throw ApiError.BadRequest();
+       }
+
+       const deleteArray = await Project.deleteMany({ _id: { $in: idArray } });
+       if(!deleteArray) {
+           throw ApiError.BadRequest();
+       }
+
+       return deleteArray;
    }
 }
 

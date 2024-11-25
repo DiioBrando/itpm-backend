@@ -1,37 +1,97 @@
 import ApiError from "../exceptions/ApiError.js";
 import TasksColumn from "../model/kanban-model/TasksColumn.js";
 import User from "../model/users-model/User.js";
-import Task from "../model/kanban-model/Task.js";
+
 
 class TasksColumnService {
-    async addTasksColumn(nameTask, idColumnTasks, _id, description = '') {
-        const findUser = await User.findOne({ _id: _id });
+    async addTasksColumn(nameTasksColumn, idUser) {
+        const findUser = await User.findOne({ _id: idUser });
 
         if(!findUser) {
             throw ApiError.BadRequest();
         }
 
-        if(nameTask.length === 0) {
+        if(nameTasksColumn.length === 0) {
             throw ApiError.BadRequest();
         }
 
-        const findIdColumn = await TasksColumn.findOne({ _id: idColumnTasks });
+        const addTasksColumn = await TasksColumn.create({ nameTasksColumn: nameTasksColumn });
+        return addTasksColumn;
+    }
+    async getOne(_id, idUser) {
 
-        if(!findIdColumn) {
-            return ApiError.BadRequest();
+        const findUser = await User.findOne({_id: idUser});
+        if (!findUser) {
+            throw ApiError.BadRequest();
         }
 
-        const addColumn = await Task.create({ idTasksColumn: findIdColumn.idColumnTasks, nameTask: nameTask, description: description, });
-        return addColumn;
-    }
-    async deleteTasksColumn() {
+        const findTasksColumn = await TasksColumn.findOne({_id: _id});
 
-    }
-    async updateTasksColumn() {
+        if (!findTasksColumn) {
+            throw ApiError.BadRequest();
+        }
 
+        return findTasksColumn;
     }
-    async getAllTasksColumn() {
 
+    async getAll() {
+        const findAllTasksColumn = await TasksColumn.find();
+        if (!findAllTasksColumn) {
+            throw ApiError.BadRequest();
+        }
+
+        return findAllTasksColumn;
+    }
+
+    async deleteTasksColumn(_id, idUser) {
+        const findUser = await User.findOne({ _id: idUser });
+        if(!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findTasksColumn = await TasksColumn.findOne({ _id: _id });
+
+        if(!findTasksColumn) {
+            throw ApiError.BadRequest();
+        }
+
+        const delTasksColumn = await TasksColumn.deleteOne({ _id: findTasksColumn._id });
+        return delTasksColumn;
+    }
+    async getMany(idArray, idUser) {
+        if (idArray.length === 0) {
+            throw ApiError.BadRequest();
+        }
+
+        const findUser = await User.findOne({_id: idUser});
+        if (!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findArray = await TasksColumn.find({_id: {$in: idArray}});
+        if (!findArray) {
+            throw ApiError.BadRequest();
+        }
+
+        return findArray;
+    }
+
+    async deleteMany(idArray, idUser) {
+        if (idArray.length === 0) {
+            throw ApiError.BadRequest();
+        }
+
+        const findUser = await User.findOne({_id: idUser});
+        if (!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const deleteArray = await TasksColumn.deleteMany({_id: {$in: idArray}});
+        if (!deleteArray) {
+            throw ApiError.BadRequest();
+        }
+
+        return deleteArray;
     }
 }
 

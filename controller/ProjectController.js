@@ -33,7 +33,6 @@ class ProjectController {
             next(e);
         }
     }
-
     async getOne(req, res, next) {
        try {
            const _id = req.params.id;
@@ -56,9 +55,19 @@ class ProjectController {
     async getMany(req, res, next) {
        try {
            const { idArray } = req.body;
-           const _id = req.user;
-           const manyProjects = await ProjectService.getMany(idArray, _id);
+           const user = req.user;
+           const manyProjects = await ProjectService.getMany(idArray, user.id);
            return res.json({ message: 'success find', manyProjects });
+       } catch (e) {
+           next(e);
+       }
+    }
+    async deleteMany(req, res, next) {
+       try {
+           const { idArray } = req.body;
+           const user = req.user;
+           const deleteManyProjects = await ProjectService.deleteMany(idArray, user.id);
+           return res.json({ message: 'success delete' });
        } catch (e) {
            next(e);
        }
