@@ -6,12 +6,12 @@ import routerProject from "./routerProject.js";
 
 const routerTasksColumn = new Router();
 
-routerTasksColumn.post('/add-tasks-column', authMiddleware, TasksColumnController.addTasksColumn);
-routerTasksColumn.delete('/delete-tasks-column/:id', authMiddleware, TasksColumnController.deleteTasksColumn);
-routerTasksColumn.patch('/update-tasks-column/:id', authMiddleware, TasksColumnController.updateTasksColumn);
-routerProject.get('/get-one-tasks-column/:id', authMiddleware, TasksColumnController.getOne);
-routerProject.get('/get-all-tasks-column', authMiddleware, TasksColumnController.getAll);
-routerProject.get('/get-many-tasks-column', authMiddleware, TasksColumnController.getMany);
-routerProject.delete('/delete-many-tasks-column', authMiddleware, TasksColumnController.deleteMany);
+routerTasksColumn.post('/column/add', authMiddleware, TasksColumnController.addTasksColumn);
+routerTasksColumn.delete('/column/delete/:id', authMiddleware, TasksColumnController.deleteTasksColumn);
+routerTasksColumn.patch('/column/update/:id', authMiddleware, TasksColumnController.updateTasksColumn);
+routerProject.get('/column/get-one/:id', authMiddleware, TasksColumnController.getOne);
+routerProject.get('/column/get-all', authMiddleware, TasksColumnController.getAll);
+routerProject.get('/column/get-many', authMiddleware, TasksColumnController.getMany);
+routerProject.delete('/column/delete-many', authMiddleware, TasksColumnController.deleteMany);
 
 export default routerTasksColumn;

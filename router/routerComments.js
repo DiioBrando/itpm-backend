@@ -5,9 +5,9 @@ import CommentController from '../controller/CommentController.js';
 
 const routerComments = new Router();
 
-routerComments.post('/add-comment', authMiddleware, CommentController.commentAdd);
-routerComments.delete('/delete-comment/:id', authMiddleware, CommentController.deleteComment);
-routerComments.patch('/update-comment/:id', authMiddleware, CommentController.updateComment);
-routerComments.get('/get-all-comments', CommentController.getAll);
+routerComments.post('/comment/add', authMiddleware, CommentController.commentAdd);
+routerComments.delete('/comment/delete/:id', authMiddleware, CommentController.deleteComment);
+routerComments.patch('/comment/update/:id', authMiddleware, CommentController.updateComment);
+routerComments.get('/comment/get-all', CommentController.getAll);
 
 export default routerComments

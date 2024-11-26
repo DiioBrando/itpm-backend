@@ -4,12 +4,12 @@ import { authMiddleware } from "../middlewaree/authMiddlewaree.js";
 
 const routerProject = new Router();
 
-routerProject.post('/create-project', authMiddleware, ProjectController.createProject);
-routerProject.delete('/delete-project/:id', authMiddleware, ProjectController.deleteProject);
-routerProject.patch('/update-project/:id', authMiddleware, ProjectController.updateProject);
-routerProject.get('/get-one-project/:id', authMiddleware, ProjectController.getOne);
-routerProject.get('/get-all-projects', authMiddleware, ProjectController.getAll);
-routerProject.get('/get-many-projects', authMiddleware, ProjectController.getMany);
-routerProject.delete('/delete-many-projects', authMiddleware, ProjectController.deleteMany);
+routerProject.post('/project/create', authMiddleware, ProjectController.createProject);
+routerProject.delete('/project/delete/:id', authMiddleware, ProjectController.deleteProject);
+routerProject.patch('/project/update/:id', authMiddleware, ProjectController.updateProject);
+routerProject.get('/project/get-one/:id', authMiddleware, ProjectController.getOne);
+routerProject.get('/project/get-all', authMiddleware, ProjectController.getAll);
+routerProject.get('/project/get-many', authMiddleware, ProjectController.getMany);
+routerProject.delete('/project/delete-many', authMiddleware, ProjectController.deleteMany);
 
 export default routerProject;
