@@ -4,6 +4,8 @@ class UserDTO {
     login;
     isActivated;
     roles;
+    projects;
+    subProjects;
 
     constructor(model) {
         this.id = model._id;
@@ -11,6 +13,8 @@ class UserDTO {
         this.email = model.email;
         this.isActivated = model.isActivated;
         this.roles = model.roles;
+        this.projects = model.projects;
+        this.subProjects = model.subProjects;
     }
 }
 

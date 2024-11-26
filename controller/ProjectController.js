@@ -72,6 +72,25 @@ class ProjectController {
            next(e);
        }
     }
+    async inviteProject(req, res, next){
+       try {
+           const { id, userid } = req.params;
+           const invite = await ProjectService.inviteProject(id, userid);
+           return res.json({ message: 'success invite' });
+       } catch (e) {
+           next(e);
+       }
+    }
+
+    async kickProject(req, res, next){
+        try {
+            const { id, userid } = req.params;
+            const invite = await ProjectService.kickProject(id, userid);
+            return res.json({ message: 'success delete' });
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new ProjectController();

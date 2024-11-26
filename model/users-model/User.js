@@ -7,7 +7,8 @@ const User = new mongoose.Schema({
     roles: [{ type: String, ref: "Role", }],
     isActivated: { type: Boolean, default: false },
     activationLink: { type: String },
-    projects: [{ type: mongoose.Types.ObjectId, ref: "Project", }, ],
+    projects: [{ type: mongoose.Types.ObjectId, ref: "Project", default: []}, ],
+    subProjects: [{ type: mongoose.Types.ObjectId, ref: "Project", default: []},  ],
 });
 
 export default mongoose.model("User", User);

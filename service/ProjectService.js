@@ -29,6 +29,10 @@ class ProjectService {
         const idTasksColumn = await createDefaultTasksColumn.map(item => item._id);
 
         const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: idTasksColumn, });
+
+        user.projects.push(create._id);
+        await user.save();
+
         return create;
     }
     async deleteProject(_id, idUser) {
@@ -122,6 +126,50 @@ class ProjectService {
        }
 
        return deleteArray;
+   }
+
+    async inviteProject(idProject, idUser){
+        const findUser = await User.findOne({ _id: idUser });
+        if(!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findProject = await Project.findOne({ _id: idProject });
+        if(!findProject) {
+            throw ApiError.BadRequest();
+        }
+
+        if (findProject.subscribers.includes(findUser._id)) {
+            throw ApiError.BadRequest();
+        }
+
+        findProject.subscribers.push(findUser._id);
+        findUser.subProjects.push(findProject._id);
+
+        await findProject.save();
+        await findUser.save();
+
+        return findProject;
+    }
+
+    async kickProject(idProject, idUser){
+        const findUser = await User.findOne({ _id: idUser });
+        if(!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findProject = await Project.findOne({ _id: idProject });
+        if(!findProject) {
+            throw ApiError.BadRequest();
+        }
+
+        findProject.subscribers = findProject.subscribers.filter(subscriberId => !subscriberId.equals(findUser._id));
+        findUser.subProjects = findUser.subProjects.filter(subProjectsId => !subProjectsId.equals(findProject._id));
+
+        await findProject.save();
+        await findUser.save();
+
+        return findProject;
    }
 }
 
