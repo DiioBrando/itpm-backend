@@ -4,11 +4,11 @@ class TaskController {
     async addTask(req, res, next) {
         try {
             const {
-                id,
+                _id,
                 name,
             } = req.body;
             const user = req.user;
-            const task = await TaskService.addTask(id, name, user.id);
+            const task = await TaskService.addTask(_id, name, user.id);
             return res.json({message: 'success add'});
         } catch (e) {
             next(e);
@@ -17,9 +17,9 @@ class TaskController {
 
     async deleteTask(req, res, next) {
         try {
-            const { id, idColumn } = req.params;
+            const { _id, idColumn } = req.params;
             const user = req.user;
-            const delTask = await TaskService.deleteTask(id, idColumn, user.id);
+            const delTask = await TaskService.deleteTask(_id, idColumn, user.id);
             return res.json({message: 'success delete'});
         } catch (e) {
             next(e);
@@ -28,7 +28,8 @@ class TaskController {
 
     async updateTask(req, res, next) {
         try {
-            const { _id, description, name } = req.body;
+            const { description, name } = req.body;
+            const _id = req.params.id;
             const user = req.user;
             const updTask = await TaskService.updateTask(_id, description, name, user.id);
             return res.json({message: 'success update'});
@@ -59,7 +60,7 @@ class TaskController {
 
     async getMany(req, res, next) {
         try {
-            const { idArray } = req.body;
+            const idArray = req.query.id;
             const user = req.user;
             const manyTask = await TaskService.getMany(idArray, user.id);
             return res.json({message: 'success find'});
@@ -70,7 +71,7 @@ class TaskController {
 
     async deleteMany(req, res, next) {
         try {
-            const { idArray } = req.body;
+            const idArray = req.query.id;
             const user = req.user;
             const manyTask = await TaskService.deleteMany(idArray, user.id);
             return res.json({message: 'success delete'});

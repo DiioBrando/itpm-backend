@@ -35,11 +35,10 @@ class ProjectController {
     }
     async getOne(req, res, next) {
        try {
-           const _id = req.params.id;
+           const name = req.params.name;
            const user = req.user;
-
-           const getProject = await ProjectService.getOne(_id, user.id);
-           return res.json({ message: 'success find', getProject},);
+           const getProject = await ProjectService.getOne(name, user.id);
+           return res.json(getProject);
        } catch (e) {
            next(e);
        }
@@ -47,24 +46,24 @@ class ProjectController {
     async getAll(req, res, next) {
        try {
            const getAllProjects = await ProjectService.getAll();
-           return res.json({ message: 'success find', getAllProjects},);
+           return res.json(getAllProjects);
        } catch (e) {
            next(e);
        }
     }
     async getMany(req, res, next) {
        try {
-           const { idArray } = req.body;
+           const idArray = req.query.id;
            const user = req.user;
            const manyProjects = await ProjectService.getMany(idArray, user.id);
-           return res.json({ message: 'success find', manyProjects });
+           return res.json(manyProjects);
        } catch (e) {
            next(e);
        }
     }
     async deleteMany(req, res, next) {
        try {
-           const { idArray } = req.body;
+           const idArray = req.query.id;
            const user = req.user;
            const deleteManyProjects = await ProjectService.deleteMany(idArray, user.id);
            return res.json({ message: 'success delete' });

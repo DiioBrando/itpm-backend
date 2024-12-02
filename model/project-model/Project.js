@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import TasksColumn from "../kanban-model/TasksColumn.js";
 
 const Project = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, },
     nameProject: { type: String, required: true, },
     timestamp: { type: String, required: true, default: Date.now },
-    userId: { type: mongoose.Types.ObjectId, ref: "User", required: true, },
-    kanbanTasks: [{ type: mongoose.Types.ObjectId, ref: "TasksColumn", default: [] }, ],
-    subscribers: [{ type: mongoose.Types.ObjectId, ref: "User", default: [] }, ],
+    kanbanTasks: [{ type: mongoose.Schema.Types.ObjectId , ref: "TasksColumn", default: [] }],
+    subscribers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
 });
 
 

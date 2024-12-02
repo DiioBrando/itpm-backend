@@ -19,7 +19,11 @@ app.use(express.json());
 app.use(cookieParser('cookieName', 'cookieValue', {
     sameSite: 'lax',
 }));
-app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
+app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(api, routerUser);
 app.use(api, routerComments);

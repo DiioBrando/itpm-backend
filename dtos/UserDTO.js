@@ -16,6 +16,9 @@ class UserDTO {
         this.projects = model.projects;
         this.subProjects = model.subProjects;
     }
+
+
+
 }
 
 export default UserDTO

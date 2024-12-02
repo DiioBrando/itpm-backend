@@ -5,6 +5,8 @@ import bcrypt from 'bcryptjs';
 import * as uuid from 'uuid';
 import UserDTO from "../dtos/UserDTO.js";
 import ApiError from "../exceptions/ApiError.js";
+import {cookie} from "express-validator";
+import cookieParser from "cookie-parser";
 
 class UserService {
     async registration(login, email, password) {
@@ -43,8 +45,10 @@ class UserService {
         }
 
         const userDto = new UserDTO(user);
+
         const tokens = TokenService.generationToken({ ...userDto });
         await TokenService.saveToken(userDto.id, tokens.refreshToken);
+
         return {
             ...tokens,
             user: userDto,
@@ -78,6 +82,7 @@ class UserService {
             throw ApiError.UnauthorizedError();
         }
         const user = await User.findById(userData.id);
+
         const userDto = new UserDTO(user);
         const tokens = TokenService.generationToken({ ...userDto });
 

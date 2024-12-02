@@ -59,7 +59,7 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const update = Task.findOneAndUpdate({_id: findTask._id}, { nameProject: nameProject, description: description, }, {new: true});
+        const update = Task.findOneAndUpdate({_id: findTask._id}, { nameTask: nameTask, description: description, }, {new: true});
         return update;
     }
     async getOne(_id, idUser) {
@@ -95,7 +95,7 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const findArray = await Task.find({_id: {$in: idArray}});
+        const findArray = await Task.find({ _id: {$in: idArray.split(',') } });
         if (!findArray) {
             throw ApiError.BadRequest();
         }
@@ -112,7 +112,7 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const deleteArray = await Task.deleteMany({_id: {$in: idArray}});
+        const deleteArray = await Task.deleteMany({_id: {$in: idArray.split(',')}});
         if (!deleteArray) {
             throw ApiError.BadRequest();
         }

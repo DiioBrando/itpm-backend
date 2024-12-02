@@ -27,7 +27,9 @@ class TasksColumnController {
             const _id = req.params.id;
             const user = req.user;
 
-            const update = await TasksColumnService.updateProject(_id, user.id, name);
+            console.log(name);
+
+            const update = await TasksColumnService.updateTasksColumn(_id, user.id, name);
             return res.json({ message: 'success update' });
         } catch (e) {
             next(e);
@@ -39,7 +41,7 @@ class TasksColumnController {
             const user = req.user;
 
             const getTasksColumn = await TasksColumnService.getOne(_id, user.id);
-            return res.json({ message: 'success find', getTasksColumn},);
+            return res.json(getTasksColumn);
         } catch (e) {
             next(e);
         }
@@ -47,24 +49,24 @@ class TasksColumnController {
     async getAll(req, res, next) {
         try {
             const getAllProjects = await TasksColumnService.getAll();
-            return res.json({ message: 'success find', getAllProjects},);
+            return res.json(getAllProjects);
         } catch (e) {
             next(e);
         }
     }
     async getMany(req, res, next) {
         try {
-            const { idArray } = req.body;
+            const idArray = req.query.id;
             const user = req.user;
             const manyProjects = await TasksColumnService.getMany(idArray, user.id);
-            return res.json({ message: 'success find', manyProjects });
+            return res.json(manyProjects);
         } catch (e) {
             next(e);
         }
     }
     async deleteMany(req, res, next) {
         try {
-            const { idArray } = req.body;
+            const idArray = req.query.id;
             const user = req.user;
             const deleteManyProjects = await TasksColumnService.deleteMany(idArray, user.id);
             return res.json({ message: 'success delete' });

@@ -1,6 +1,7 @@
 import ApiError from "../exceptions/ApiError.js";
 import TasksColumn from "../model/kanban-model/TasksColumn.js";
 import User from "../model/users-model/User.js";
+import Task from "../model/kanban-model/Task.js";
 
 
 class TasksColumnService {
@@ -68,7 +69,9 @@ class TasksColumnService {
             throw ApiError.BadRequest();
         }
 
-        const findArray = await TasksColumn.find({_id: {$in: idArray}});
+        const ids = Array.isArray(idArray) ? idArray : idArray.split(',');
+        const findArray = await TasksColumn.find({ _id: {$in: ids }});
+
         if (!findArray) {
             throw ApiError.BadRequest();
         }
@@ -86,12 +89,33 @@ class TasksColumnService {
             throw ApiError.BadRequest();
         }
 
-        const deleteArray = await TasksColumn.deleteMany({_id: {$in: idArray}});
+        const deleteArray = await TasksColumn.deleteMany({_id: {$in: idArray.split(',')}});
         if (!deleteArray) {
             throw ApiError.BadRequest();
         }
 
         return deleteArray;
+    }
+
+    async updateTasksColumn(_id, idUser, name){
+        if (name.length === 0) {
+            throw ApiError.BadRequest();
+        }
+
+        const findUser = await User.findOne({_id: idUser});
+        if (!findUser) {
+            throw ApiError.BadRequest();
+        }
+
+        const findTask = await TasksColumn.findOne({_id: _id});
+
+        if (!findTask) {
+            throw ApiError.BadRequest();
+        }
+
+
+        const update = TasksColumn.findOneAndUpdate({_id: findTask._id}, { nameTasksColumn: name  }, {new: true});
+        return update;
     }
 }
 

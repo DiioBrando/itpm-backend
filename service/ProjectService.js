@@ -13,6 +13,15 @@ class ProjectService {
         if(!user) {
             throw ApiError.BadRequest('not found user');
         }
+
+        const findProject = await Project.findOne({ nameProject: name });
+        if(findProject) {
+            if(user.projects.includes(findProject._id)) {
+                throw ApiError.BadRequest('this is project already created');
+            }
+        }
+
+
         const userDto = new UserDTO(user);
         const defaultKanban = [
             {
@@ -26,9 +35,7 @@ class ProjectService {
             },
         ];
         const createDefaultTasksColumn = await TasksColumn.insertMany(defaultKanban);
-        const idTasksColumn = await createDefaultTasksColumn.map(item => item._id);
-
-        const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: idTasksColumn, });
+        const create = await Project.create({ nameProject: name, userId: userDto.id, kanbanTasks: createDefaultTasksColumn, });
 
         user.projects.push(create._id);
         await user.save();
@@ -69,14 +76,14 @@ class ProjectService {
         const update = Project.findOneAndUpdate({ _id: findProject.id }, { nameProject: nameProject }, { new: true } );
         return update;
     }
-    async getOne(_id, idUser) {
+    async getOne(name, idUser) {
 
         const findUser = await User.findOne({ _id: idUser });
         if(!findUser) {
             throw ApiError.BadRequest();
         }
 
-        const findProject = await Project.findOne({ _id: _id });
+        const findProject = await Project.findOne({ nameProject: name });
 
         if(!findProject) {
             throw ApiError.BadRequest();
@@ -96,20 +103,17 @@ class ProjectService {
        if(idArray.length === 0) {
            throw ApiError.BadRequest();
        }
-
        const findUser = await User.findOne({ _id: idUser });
        if(!findUser) {
            throw ApiError.BadRequest();
        }
-
-       const findArray = await Project.find({ _id: { $in: idArray } });
+       const findArray = await Project.find({ _id: { $in: idArray.split(',') } });
        if(!findArray) {
            throw ApiError.BadRequest();
        }
 
        return findArray;
    }
-
    async deleteMany(idArray, idUser) {
        if(idArray.length === 0) {
            throw ApiError.BadRequest();
@@ -120,14 +124,13 @@ class ProjectService {
            throw ApiError.BadRequest();
        }
 
-       const deleteArray = await Project.deleteMany({ _id: { $in: idArray } });
+       const deleteArray = await Project.deleteMany({ _id: { $in: idArray.split(',') } });
        if(!deleteArray) {
            throw ApiError.BadRequest();
        }
 
        return deleteArray;
    }
-
     async inviteProject(idProject, idUser){
         const findUser = await User.findOne({ _id: idUser });
         if(!findUser) {
@@ -151,7 +154,6 @@ class ProjectService {
 
         return findProject;
     }
-
     async kickProject(idProject, idUser){
         const findUser = await User.findOne({ _id: idUser });
         if(!findUser) {
