@@ -4,23 +4,32 @@ import Task from "../model/kanban-model/Task.js";
 import TasksColumn from "../model/kanban-model/TasksColumn.js";
 
 class TaskService {
-    async addTask(idTasksColumn, name, idUser) {
-        if (name.length === 0) {
-            throw ApiError.BadRequest('Please set name project!');
-        }
-        const user = await User.findOne({_id: idUser});
-        if (!user) {
-            throw ApiError.BadRequest('not found user');
+    async addTask(idTasksColumn, name, idUser, expirationDate, description) {
+        if (!name || name.trim().length === 0) {
+            throw ApiError.BadRequest('Task name is required!');
         }
 
-        const create = await Task.create({ nameTask: name, idTasksColumn: idTasksColumn});
+        const user = await User.findById(idUser);
+        if (!user) {
+            throw ApiError.BadRequest('User not found!');
+        }
+
+        const create = await Task.create({
+            nameTask: name,
+            idTasksColumn: idTasksColumn,
+            expirationDate: expirationDate || '',
+            description: description,
+        });
+
         await TasksColumn.findByIdAndUpdate(
             idTasksColumn,
             { $push: { tasks: create._id } },
             { new: true }
         );
+
         return create;
     }
+
 
     async deleteTask(_id, idTasksColumn, idUser) {
         const findUser = await User.findOne({_id: idUser});
@@ -35,16 +44,16 @@ class TaskService {
         }
 
         const delTask = await Task.deleteOne({_id: findTask._id});
-        await TasksColumn.findOneAndDelete(
-            idTasksColumn,
-            { $pull: { tasks: delTask._id } },
+        await TasksColumn.findOneAndUpdate(
+            { _id: idTasksColumn },
+            { $pull: { tasks: _id } },
             { new: true }
         );
         return delTask;
     }
 
-    async updateTask(_id, description, nameProject, idUser) {
-        if (nameProject.length === 0) {
+    async updateTask(_id, description, nameTask, idUser) {
+        if (nameTask.length === 0) {
             throw ApiError.BadRequest();
         }
 
@@ -86,6 +95,9 @@ class TaskService {
         return findAllProjects;
     }
     async getMany(idArray, idUser) {
+
+        idArray = idArray.split(',')
+
         if (idArray.length === 0) {
             throw ApiError.BadRequest();
         }
@@ -95,7 +107,7 @@ class TaskService {
             throw ApiError.BadRequest();
         }
 
-        const findArray = await Task.find({ _id: {$in: idArray.split(',') } });
+        const findArray = await Task.find({ _id: {$in: idArray } });
         if (!findArray) {
             throw ApiError.BadRequest();
         }
@@ -122,6 +134,27 @@ class TaskService {
             { new: true }
         );
         return deleteArray;
+    }
+
+    async updateTaskDeadline(_id, expirationDate, idUser) {
+        const user = await User.findOne({ _id: idUser });
+        if (!user) {
+            throw ApiError.BadRequest('User not found!');
+        }
+
+        const task = await Task.findOne({ _id });
+        if (!task) {
+            throw ApiError.BadRequest('Task not found!');
+        }
+
+        if (!expirationDate) {
+            throw ApiError.BadRequest('Expiration date is required!');
+        }
+
+        task.expirationDate = expirationDate;
+        await task.save();
+
+        return task;
     }
 }
 

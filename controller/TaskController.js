@@ -6,10 +6,13 @@ class TaskController {
             const {
                 _id,
                 name,
+                expirationDate,
+                description
             } = req.body;
             const user = req.user;
-            const task = await TaskService.addTask(_id, name, user.id);
-            return res.json({message: 'success add'});
+
+            const task = await TaskService.addTask(_id, name, user.id, expirationDate, description);
+            return res.json({ message: 'Task added successfully', task });
         } catch (e) {
             next(e);
         }
@@ -17,7 +20,9 @@ class TaskController {
 
     async deleteTask(req, res, next) {
         try {
-            const { _id, idColumn } = req.params;
+            const _id = req.params.id;
+            const idColumn = req.params.idColumn
+
             const user = req.user;
             const delTask = await TaskService.deleteTask(_id, idColumn, user.id);
             return res.json({message: 'success delete'});
@@ -63,7 +68,7 @@ class TaskController {
             const idArray = req.query.id;
             const user = req.user;
             const manyTask = await TaskService.getMany(idArray, user.id);
-            return res.json({message: 'success find'});
+            return res.json(manyTask);
         } catch (e) {
             next(e);
         }
@@ -75,6 +80,19 @@ class TaskController {
             const user = req.user;
             const manyTask = await TaskService.deleteMany(idArray, user.id);
             return res.json({message: 'success delete'});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async updateTaskDeadline(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { expirationDate } = req.body;
+            const user = req.user;
+
+            const updatedTask = await TaskService.updateTaskDeadline(id, expirationDate, user.id);
+            return res.json({ message: 'Deadline updated successfully', updatedTask });
         } catch (e) {
             next(e);
         }

@@ -62,6 +62,17 @@ class CommentController {
         }
     }
 
+    async getMany(req, res, next) {
+        try {
+            const _id = req.params.id;
+            const user = req.user;
+            const comments = await CommentService.getMany(_id, user.id);
+            return res.json(comments);
+        } catch (e) {
+            next(e);
+        }
+    }
+
     async deleteDislike(req, res, next) {
         try {
             const { idComment } = req.body;
@@ -72,7 +83,6 @@ class CommentController {
             next(e);
         }
     }
-
     async deleteLike(req, res, next) {
         try {
             const { idComment } = req.body;

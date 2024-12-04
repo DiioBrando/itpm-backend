@@ -3,9 +3,9 @@ import TasksColumnService from "../service/TasksColumnService.js";
 class TasksColumnController {
     async addTasksColumn(req, res, next) {
         try {
-            const { nameTasksColumn, } = req.body;
+            const { name, typeTasksColumn, projectId } = req.body;
             const user = req.user;
-            const create = await TasksColumnService.addTasksColumn(nameTasksColumn, user.id);
+            const create = await TasksColumnService.addTasksColumn(name, typeTasksColumn, user.id, projectId);
             return res.json({ message: 'success create' });
         } catch (e) {
             next(e);

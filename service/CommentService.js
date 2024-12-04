@@ -1,7 +1,7 @@
 import ApiError from "../exceptions/ApiError.js";
 import User from "../model/users-model/User.js";
 import UserDTO from "../dtos/UserDTO.js";
-import Comments from "../model/Comments.js";
+import Comments from "../model/Comment.js";
 
 
 class CommentService {
@@ -89,6 +89,22 @@ class CommentService {
         comment.dislike.push(dislike)
         await comment.save();
         return dislike;
+    }
+
+    async getMany(_id, idUser) {
+
+        const findUser = await User.findOne({ idUser });
+
+        if(!findUser) {
+            throw ApiError.BadRequest('');
+        }
+
+        const findComments = await Comments.find({ _id: { $in: { _id }} })
+        if(!findComments) {
+            throw ApiError.BadRequest('');
+        }
+
+        return findComments;
     }
 
     async deleteDislike(currentIdUser, idComment) {

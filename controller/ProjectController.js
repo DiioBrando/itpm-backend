@@ -6,7 +6,7 @@ class ProjectController {
             const { nameProject, } = req.body;
             const user = req.user;
             const create = await ProjectService.createProject(nameProject, user.id);
-            return res.json({ message: 'success create' });
+            return res.json(create);
         } catch (e) {
             next(e);
         }
