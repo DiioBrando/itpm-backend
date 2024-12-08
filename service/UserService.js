@@ -92,10 +92,20 @@ class UserService {
             user: userDto,
         }
     }
-    async getAllUsers() {
+    async getAllUsers(userId) {
         const users = await User.find();
-        return users.map((user) => new UserDTO(user));
+        const user = await User.findOne({ _id: userId });
+
+        if (!user) {
+            throw ApiError.BadRequest('User not found');
+        }
+
+        const filteredUsers = users.filter(item => item._id.toString() !== user._id.toString());
+
+        const res = filteredUsers.map(user => new UserDTO(user));
+        return res;
     }
+
 }
 
 

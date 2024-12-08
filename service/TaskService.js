@@ -52,7 +52,8 @@ class TaskService {
         return delTask;
     }
 
-    async updateTask(_id, description, nameTask, idUser) {
+
+    async updateTask(_id, description, nameTask, idTasksColumn, idUser) {
         if (nameTask.length === 0) {
             throw ApiError.BadRequest();
         }
@@ -63,14 +64,20 @@ class TaskService {
         }
 
         const findTask = await Task.findOne({_id: _id});
-
         if (!findTask) {
             throw ApiError.BadRequest();
         }
 
-        const update = Task.findOneAndUpdate({_id: findTask._id}, { nameTask: nameTask, description: description, }, {new: true});
+
+        const update = await Task.findOneAndUpdate(
+            { _id: findTask._id },
+            { nameTask: nameTask, description: description, idTasksColumn: idTasksColumn, changed: true, },
+            { new: true }
+        );
+
         return update;
     }
+
     async getOne(_id, idUser) {
 
         const findUser = await User.findOne({_id: idUser});
