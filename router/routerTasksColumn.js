@@ -13,4 +13,5 @@ routerTasksColumn.get('/columns', authMiddleware, TasksColumnController.getAll);
 routerTasksColumn.get('/columns/batch', authMiddleware, TasksColumnController.getMany);
 routerTasksColumn.delete('/columns/batch', authMiddleware, TasksColumnController.deleteMany);
 
+
 export default routerTasksColumn;

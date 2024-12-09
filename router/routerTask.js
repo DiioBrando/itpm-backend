@@ -1,6 +1,8 @@
 import Router from 'express';
 import { authMiddleware } from '../middlewaree/authMiddlewaree.js';
 import TaskController from "../controller/TaskController.js";
+import TasksColumnController from "../controller/TasksColumnController.js";
+import routerTasksColumn from "./routerTasksColumn.js";
 
 const routerTask = new Router();
 
@@ -12,6 +14,6 @@ routerTask.get('/tasks/:id', authMiddleware, TaskController.getOne);
 routerTask.delete('/tasks/:id/:idColumn', authMiddleware, TaskController.deleteTask);
 routerTask.patch('/tasks/:id', authMiddleware, TaskController.updateTask);
 routerTask.patch('/tasks/:id/deadline', authMiddleware, TaskController.updateTaskDeadline);
-
+routerTasksColumn.patch('/tasks/move/:id', authMiddleware, TaskController.moveTask)
 
 export default routerTask;

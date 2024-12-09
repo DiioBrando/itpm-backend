@@ -1,4 +1,5 @@
 import TaskService from "../service/TaskService.js";
+import Task from "../model/kanban-model/Task.js";
 
 class TaskController {
     async addTask(req, res, next) {
@@ -93,6 +94,16 @@ class TaskController {
 
             const updatedTask = await TaskService.updateTaskDeadline(id, expirationDate, user.id);
             return res.json({ message: 'Deadline updated successfully', updatedTask });
+        } catch (e) {
+            next(e);
+        }
+    }
+    async moveTask(req, res, next) {
+        try {
+            const { idColumn } = req.body;
+            const _id = req.params.id;
+            const move = await TaskService.moveTask(_id, idColumn);
+            return res.json({ message: 'success move task'});
         } catch (e) {
             next(e);
         }

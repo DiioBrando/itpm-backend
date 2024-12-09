@@ -163,6 +163,42 @@ class TaskService {
 
         return task;
     }
+
+    async moveTask(_id, idColumn) {
+
+        const findTask = await Task.findOne({ _id: _id });
+        if (!findTask) {
+            throw ApiError.BadRequest('');
+        }
+
+
+        const findTasksColumn = await TasksColumn.findOne({ _id: idColumn });
+        if (!findTasksColumn) {
+            throw ApiError.BadRequest('');
+        }
+
+
+        const oldTasksColumn = await TasksColumn.findOne({ _id: findTask.idTasksColumn });
+        if (oldTasksColumn) {
+
+            oldTasksColumn.tasks = oldTasksColumn.tasks.filter(
+                (taskId) => taskId.toString() !== _id.toString()
+            );
+            await oldTasksColumn.save();
+        }
+
+
+        findTasksColumn.tasks.push(_id);
+        await findTasksColumn.save();
+
+
+        findTask.idTasksColumn = idColumn;
+        await findTask.save();
+
+        return findTask;
+    }
+
+
 }
 
 

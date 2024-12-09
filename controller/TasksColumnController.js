@@ -1,4 +1,5 @@
 import TasksColumnService from "../service/TasksColumnService.js";
+import Task from "../model/kanban-model/Task.js";
 
 class TasksColumnController {
     async addTasksColumn(req, res, next) {
