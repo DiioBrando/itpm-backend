@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const secretKey = Buffer.from(process.env.SECRET_CRYPTO_KEY, 'utf8');
+const secretKey = Buffer.from('n203@C[i?4g_i2-g22FA%f+)_(g]-in!', 'utf8');
 const algorithm = 'aes-256-cbc';
 export default class CryptoInfo {
    static encrypt(text) {

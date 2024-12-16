@@ -4,7 +4,7 @@ import Task from "../model/kanban-model/Task.js";
 import TasksColumn from "../model/kanban-model/TasksColumn.js";
 
 class TaskService {
-    async addTask(idTasksColumn, name, idUser, expirationDate, description) {
+    async addTask(idTasksColumn, name, idUser, startDate, description) {
         if (!name || name.trim().length === 0) {
             throw ApiError.BadRequest('Task name is required!');
         }
@@ -17,7 +17,7 @@ class TaskService {
         const create = await Task.create({
             nameTask: name,
             idTasksColumn: idTasksColumn,
-            expirationDate: expirationDate || '',
+            startDate: Number(new Date(startDate)) || '',
             description: description,
         });
 
@@ -143,7 +143,7 @@ class TaskService {
         return deleteArray;
     }
 
-    async updateTaskDeadline(_id, expirationDate, idUser) {
+    async updateTaskDeadline(_id, startDate, idUser) {
         const user = await User.findOne({ _id: idUser });
         if (!user) {
             throw ApiError.BadRequest('User not found!');
@@ -158,7 +158,7 @@ class TaskService {
             throw ApiError.BadRequest('Expiration date is required!');
         }
 
-        task.expirationDate = expirationDate;
+        task.expirationDate = startDate;
         await task.save();
 
         return task;

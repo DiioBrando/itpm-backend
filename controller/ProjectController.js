@@ -26,11 +26,11 @@ class ProjectController {
 
     async updateProject(req, res, next) {
         try {
-            const {name} = req.body;
+            const {name, statusProject, descriptionProject, dateProject, budgetProject} = req.body;
             const _id = req.params.id;
             const user = req.user;
 
-            const update = await ProjectService.updateProject(_id, user.id, name);
+            const update = await ProjectService.updateProject(_id, user.id, name, statusProject, descriptionProject, dateProject, budgetProject);
             return res.json({message: 'success update'});
         } catch (e) {
             next(e);
@@ -109,6 +109,27 @@ class ProjectController {
             return res.download(filePath);
         } catch (error) {
             next(error);
+        }
+    }
+
+    async generateSelectedProjectsReports(req, res, next) {
+        try {
+            const idArray = req.params.id;
+
+            const filePath = await ProjectService.generateSelectedProjectsReports(idArray);
+            return res.download(filePath);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async generateAllProjectsReports(req, res, next) {
+        try {
+            const _id = req.user.id;
+            const filePath = await ProjectService.generateAllProjectsReports(_id);
+            return res.download(filePath);
+        } catch (e) {
+            next(e);
         }
     }
 }

@@ -7,6 +7,7 @@ import fs from 'fs';
 import PDFDocument from 'pdfkit';
 import { fileURLToPath } from 'url';
 import Task from "../model/kanban-model/Task.js";
+import {response} from "express";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,7 +70,11 @@ class ProjectService {
         return delProject;
     }
 
-    async updateProject(_id, idUser, nameProject) {
+    async updateProject(_id, idUser, nameProject, statusProject, descriptionProject, dateProject, budgetProject) {
+        if(statusProject.length === 0) {
+            throw ApiError.BadRequest();
+        }
+
         if (nameProject.length === 0) {
             throw ApiError.BadRequest();
         }
@@ -83,23 +88,34 @@ class ProjectService {
         }
         const update = await Project.findOneAndUpdate(
             { _id: project._id },
-            { nameProject },
-            { new: true }
+            { nameProject: nameProject, statusProject: statusProject, descriptionProject: descriptionProject, dateProject: dateProject, budgetProject: budgetProject },
+            { new: true },
         );
         return update;
     }
 
     async getOne(name, idUser) {
+
         const user = await User.findOne({ _id: idUser });
         if (!user) {
-            throw ApiError.BadRequest();
+            throw ApiError.BadRequest("not found user");
         }
-        const project = await Project.findOne({ nameProject: name });
+
+        const project = await Project.findOne({
+            nameProject: name,
+            $or: [
+                { userId: user._id },
+                { subscribers: user._id },
+            ]
+        });
+
         if (!project) {
-            throw ApiError.BadRequest();
+            throw ApiError.BadRequest("Project not fount or not access");
         }
+
         return project;
     }
+
 
     async getAll() {
         const findAllProjects = await Project.find();
@@ -183,15 +199,19 @@ class ProjectService {
 
 
     async generateProjectReport(projectId) {
-        const project = await Project.findById(projectId)
-            .populate('kanbanTasks')
-            .populate('subscribers');
+        const project = await Project.findById(projectId).populate({
+            path: 'kanbanTasks',
+            populate: {
+                path: 'tasks',
+                model: 'Task'
+            }
+        }).populate('subscribers', 'email');
 
-        const user = await User.findOne({ _id: project.userId });
-        const users = project.subscribers.map(item => User.findOne({ _id: item }));
         if (!project) {
             throw ApiError.BadRequest('Project not found');
         }
+
+        const user = await User.findById(project.userId, 'email');
 
         // Подготовка папки для отчета
         const directoryPath = path.join(__dirname, 'reports');
@@ -210,35 +230,45 @@ class ProjectService {
         // Наполнение документа данными
         doc.fontSize(20).text(`Отчёт о проекте: ${project.nameProject}`, { align: 'center' });
         doc.moveDown();
-        doc.text(`Отчёт создан: ${user.email}`);
+        doc.text(`Отчёт создан пользователем: ${user.email}`);
 
         // Обработка подписчиков
-        const subscribers = users.length > 0 ? (users.map(item => item.email) || 'не известна').join(', ') : 'Нет команды';
+        const subscribers = project.subscribers.length > 0
+            ? project.subscribers.map(sub => sub.email).join(', ')
+            : 'Нет команды';
         doc.text(`Команда: ${subscribers}`);
         doc.moveDown();
 
-        // Подсчет задач в каждой колонке и количества выполненных задач
-        let totalCompletedTasks = 0;
-
+        // Подсчет задач в каждой колонке и количества задач по типам
+        let totalTasks = 0;
+        let completedTasksCount = 0;
         for (const column of project.kanbanTasks) {
             const columnName = column.nameTasksColumn;
+            const columnType = column.typeColumn;
             const tasksCount = column.tasks.length;
 
-            // Подсчет только выполненных задач
-            const completedTasksCount = column.tasks.filter(task => task.status === 'completed').length;
-            totalCompletedTasks += completedTasksCount;
+            if(columnType === 'completed') {
+                completedTasksCount += tasksCount;
+            }
+            totalTasks += tasksCount;
 
-            // Добавляем в отчет только столбец и количество задач
-            doc.text(`${columnName}: ${completedTasksCount} задачи`);
+            doc.text(`Колонка "${columnName}" (${columnType}): ${tasksCount} задач`);
             doc.moveDown();
         }
 
-        // Расчет общей суммы выплат (например, 10% от бюджета проекта на количество выполненных задач)
-        const paymentPerTask = project.budgetProject / totalCompletedTasks;
-        const totalPayment = totalCompletedTasks * paymentPerTask;
+        const budget = parseFloat(project.budgetProject); // Преобразуем строку в число
+        if (isNaN(budget) || budget <= 0) {
+            throw new Error("Некорректный бюджет проекта");
+        }
+        console.log(completedTasksCount, 'completedTasksCount');
+
+        const paymentPerTask = budget / totalTasks; // Сумма выплаты за задачу
+        const totalPayment = paymentPerTask * (completedTasksCount); // Общая сумма выплат за завершенные задачи
+
+
 
         // Добавляем сумму выплат
-        doc.text(`Общая оплата на основе выполненных задач: ${totalPayment? totalPayment.toFixed(2): 0} $`);
+        doc.text(`Общая оплата за задачи: ${totalPayment.toFixed(2)} $`);
         doc.moveDown();
 
         // Завершение документа
@@ -265,11 +295,169 @@ class ProjectService {
     }
 
 
+    async generateSelectedProjectsReports(idArray) {
+
+        const projectIds = idArray.split(',');
 
 
+        const projects = await Project.find({ _id: { $in: projectIds } });
+
+        if (!projects.length) {
+            throw new Error('Проекты не найдены.');
+        }
 
 
+        const projectsByStatus = {
+            'in-work': [],
+            'in-process': [],
+            'completed': [],
+        };
 
+        projects.forEach((project) => {
+            projectsByStatus[project.statusProject]?.push(project);
+        });
+
+
+        const totalBudget = projects.reduce((sum, project) => sum + parseFloat(project.budgetProject || 0), 0);
+
+
+        const directoryPath = path.join(__dirname, '../reports');
+        if (!fs.existsSync(directoryPath)) {
+            fs.mkdirSync(directoryPath, { recursive: true });
+        }
+
+
+        const doc = new PDFDocument();
+        const filePath = path.join(directoryPath, 'projects_report.pdf');
+        const writeStream = fs.createWriteStream(filePath);
+        doc.pipe(writeStream);
+        doc.registerFont('Tinos', './font/Tinos/Tinos-Bold.ttf');
+        doc.font('Tinos');
+
+        doc.fontSize(20).text('Отчёт по проектам', { align: 'center' }).moveDown();
+
+
+        ['in-work', 'in-process', 'completed'].forEach((status) => {
+            const statusTitle =
+                status === 'in-work'
+                    ? 'К работе'
+                    : status === 'in-process'
+                        ? 'В процессе'
+                        : 'Завершённые';
+            doc.fontSize(16).text(`${statusTitle}:`, { underline: true }).moveDown();
+
+            if (projectsByStatus[status].length > 0) {
+                projectsByStatus[status].forEach((project) => {
+                    const date = project.dateProject.split('-').map(Number);
+                    const startDate = new Date(date[0]).toLocaleDateString('ru-Ru');
+                    const endDate = new Date(date[1]).toLocaleDateString('ru-Ru');
+                    doc
+                        .fontSize(12)
+                        .text(`Название: ${project.nameProject}`)
+                        .text(`Бюджет: ${project.budgetProject}$`)
+                        .text(`Дедлайн: ${startDate} - ${endDate}`)
+                        .moveDown();
+                });
+            } else {
+                doc.fontSize(12).text('Нет проектов').moveDown();
+            }
+        });
+
+
+        doc.fontSize(16).text(`Общая сумма всех проектов: ${totalBudget.toFixed(2)}$`, {
+            align: 'right',
+        });
+
+
+        doc.end();
+
+        return new Promise((resolve, reject) => {
+            writeStream.on('finish', () => resolve(filePath));
+            writeStream.on('error', reject);
+        });
+    }
+
+    async generateAllProjectsReports(idUser) {
+        const user = await User.findOne({ _id: idUser });
+
+        const projectsId = [...user.projects, ...user.subProjects].filter((item) => item !== undefined);
+
+        const projects = await Project.find({ _id: { $in: projectsId } });
+
+        if (!projects.length) {
+            throw new Error('Проекты не найдены.');
+        }
+
+
+        const projectsByStatus = {
+            'in-work': [],
+            'in-process': [],
+            'completed': [],
+        };
+
+        projects.forEach((project) => {
+            projectsByStatus[project.statusProject]?.push(project);
+        });
+
+
+        const totalBudget = projects.reduce((sum, project) => sum + parseFloat(project.budgetProject || 0), 0);
+
+
+        const directoryPath = path.join(__dirname, '../reports');
+        if (!fs.existsSync(directoryPath)) {
+            fs.mkdirSync(directoryPath, { recursive: true });
+        }
+
+
+        const doc = new PDFDocument();
+        const filePath = path.join(directoryPath, 'projects_report.pdf');
+        const writeStream = fs.createWriteStream(filePath);
+        doc.pipe(writeStream);
+        doc.registerFont('Tinos', './font/Tinos/Tinos-Bold.ttf');
+        doc.font('Tinos');
+
+        doc.fontSize(20).text('Отчёт по проектам', { align: 'center' }).moveDown();
+
+
+        ['in-work', 'in-process', 'completed'].forEach((status) => {
+            const statusTitle =
+                status === 'in-work'
+                    ? 'К работе'
+                    : status === 'in-process'
+                        ? 'В процессе'
+                        : 'Завершённые';
+            doc.fontSize(16).text(`${statusTitle}:`, { underline: true }).moveDown();
+
+            if (projectsByStatus[status].length > 0) {
+                projectsByStatus[status].forEach((project) => {
+                    const date = project.dateProject.split('-').map(Number);
+                    const startDate = new Date(date[0]).toLocaleDateString('ru-Ru');
+                    const endDate = new Date(date[1]).toLocaleDateString('ru-Ru');
+                    doc
+                        .fontSize(12)
+                        .text(`Название: ${project.nameProject}`)
+                        .text(`Бюджет: ${project.budgetProject}$`)
+                        .text(`Дедлайн: ${startDate} - ${endDate}`)
+                        .moveDown();
+                });
+            } else {
+                doc.fontSize(12).text('Нет проектов').moveDown();
+            }
+        });
+
+
+        doc.fontSize(16).text(`Общая сумма всех проектов: ${totalBudget.toFixed(2)}$`, {
+            align: 'right',
+        });
+
+
+        doc.end();
+
+        return new Promise((resolve, reject) => {
+            writeStream.on('finish', () => resolve(filePath));
+            writeStream.on('error', reject);
+        });
+    }
 
 }
 

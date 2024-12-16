@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routerUser from "./router/routerUser.js";
-import routerComment from "./router/routerComment.js";
 import routerProject from "./router/routerProject.js";
 import routerTask from "./router/routerTask.js";
 import routerTasksColumn from "./router/routerTasksColumn.js";
@@ -26,7 +25,6 @@ app.use(cors({
 }));
 
 app.use(api, routerUser);
-app.use(api, routerComment);
 app.use(api, routerProject);
 app.use(api, routerTask);
 app.use(api, routerTasksColumn);

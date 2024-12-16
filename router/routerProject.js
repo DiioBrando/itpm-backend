@@ -18,5 +18,6 @@ routerProject.post('/project/invite/:id/:userId', authMiddleware, ProjectControl
 routerProject.delete('/project/invite/:id/:userId', authMiddleware, ProjectController.kickProject);
 
 routerProject.get('/project/report/:projectId', authMiddleware, ProjectController.generateProjectReport);
-
+routerProject.get('/projects/reports/:id', authMiddleware, ProjectController.generateSelectedProjectsReports);
+routerProject.get('/projects/reports-all', authMiddleware, ProjectController.generateAllProjectsReports);
 export default routerProject;

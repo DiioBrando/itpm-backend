@@ -7,12 +7,12 @@ class TaskController {
             const {
                 _id,
                 name,
-                expirationDate,
+                startDate,
                 description
             } = req.body;
             const user = req.user;
 
-            const task = await TaskService.addTask(_id, name, user.id, expirationDate, description);
+            const task = await TaskService.addTask(_id, name, user.id, startDate, description);
             return res.json({ message: 'Task added successfully', task });
         } catch (e) {
             next(e);
@@ -89,10 +89,10 @@ class TaskController {
     async updateTaskDeadline(req, res, next) {
         try {
             const { id } = req.params;
-            const { expirationDate } = req.body;
+            const { startDate } = req.body;
             const user = req.user;
 
-            const updatedTask = await TaskService.updateTaskDeadline(id, expirationDate, user.id);
+            const updatedTask = await TaskService.updateTaskDeadline(id, startDate, user.id);
             return res.json({ message: 'Deadline updated successfully', updatedTask });
         } catch (e) {
             next(e);
